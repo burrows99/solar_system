@@ -25,7 +25,7 @@ function App() {
         <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade />
         <DeepSpaceObjects />
         <SolarSystem isPlaying={isPlaying} />
-        <SolarFlares />
+        <SolarFlares isPlaying={isPlaying} />
         <SpaceEffects isPlaying={isPlaying} />
         <OuterSolarSystem isPlaying={isPlaying} />
         <OrbitControls 

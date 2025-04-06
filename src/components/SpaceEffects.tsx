@@ -42,7 +42,9 @@ const SpaceEffects = ({ isPlaying }: SpaceEffectsProps) => {
   const cometRef = useRef<THREE.Mesh>(null);
   const cometTrailRef = useRef<THREE.Points>(null);
   const [cometPosition, setCometPosition] = useState(new THREE.Vector3());
-  const timeRef = useRef(Math.random() * 100);
+  const timeRef = useRef(0);
+  const lastUpdateTime = useRef(0);
+  const accumulatedPauseTime = useRef(0);
 
   // Create solar flare particles
   const flareGeometry = useMemo(() => {
@@ -104,28 +106,42 @@ const SpaceEffects = ({ isPlaying }: SpaceEffectsProps) => {
   }, []);
 
   useFrame((state) => {
-    if (!isPlaying) return;
+    const currentTime = state.clock.getElapsedTime();
     
-    const time = state.clock.getElapsedTime();
-    
+    if (!isPlaying) {
+      accumulatedPauseTime.current += currentTime - lastUpdateTime.current;
+      lastUpdateTime.current = currentTime;
+      return;
+    }
+
+    // Calculate effective time since last valid frame
+    const effectiveTime = currentTime - accumulatedPauseTime.current;
+    const delta = effectiveTime - timeRef.current;
+    timeRef.current = effectiveTime;
+    lastUpdateTime.current = currentTime;
+
     // Animate solar flares
     if (flareRef.current) {
-      flareRef.current.rotation.y += 0.001;
-      flareRef.current.rotation.x += 0.0005;
+      flareRef.current.rotation.y += 0.001 * delta * 60;
+      flareRef.current.rotation.x += 0.0005 * delta * 60;
     }
 
     // Animate comet
     if (cometRef.current && cometTrailRef.current) {
       const orbitRadius = 30;
       const orbitSpeed = 0.2;
-      const x = Math.cos(time * orbitSpeed) * orbitRadius;
-      const y = Math.sin(time * orbitSpeed) * orbitRadius * 0.5;
-      const z = Math.sin(time * orbitSpeed) * orbitRadius;
+      
+      // Use delta-time for consistent motion
+      const t = timeRef.current * orbitSpeed;
+
+      const x = Math.cos(t) * orbitRadius;
+      const y = Math.sin(t) * orbitRadius * 0.5;
+      const z = Math.sin(t) * orbitRadius;
 
       // Calculate tangent vector (direction of motion)
-      const tx = -Math.sin(time * orbitSpeed);
-      const ty = Math.cos(time * orbitSpeed) * 0.5;
-      const tz = Math.cos(time * orbitSpeed);
+      const tx = -Math.sin(t);
+      const ty = Math.cos(t) * 0.5;
+      const tz = Math.cos(t);
 
       // Set comet position
       const newPosition = new THREE.Vector3(x, y, z);
