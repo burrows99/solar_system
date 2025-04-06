@@ -2,31 +2,16 @@ import { useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Stars } from '@react-three/drei'
 import SolarSystem from './components/SolarSystem'
-import './App.css'
+import './App.css';
 
 function App() {
   const [isPlaying, setIsPlaying] = useState(true)
 
   return (
-    <div style={{ width: '100vw', height: '100vh', background: '#000', position: 'relative' }}>
+    <div className="canvas-container">
       <button
+        className="control-button"
         onClick={() => setIsPlaying(!isPlaying)}
-        style={{
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          padding: '12px 24px',
-          fontSize: '16px',
-          fontWeight: 'bold',
-          cursor: 'pointer',
-          backgroundColor: 'rgba(51, 51, 51, 0.8)',
-          color: 'white',
-          border: '2px solid rgba(255, 255, 255, 0.2)',
-          borderRadius: '8px',
-          zIndex: 1000,
-          transition: 'all 0.2s ease',
-          backdropFilter: 'blur(5px)',
-        }}
       >
         {isPlaying ? 'Pause' : 'Play'}
       </button>
