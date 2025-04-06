@@ -45,21 +45,21 @@ const CELESTIAL_BODIES = {
     orbitRadius: 10, 
     color: '#A0522D',
     rotationPeriod: 58.6, // days
-    orbitalPeriod: 0.24, // years
+    orbitalPeriod: 0.12, // Decreased for faster revolution
   },
   venus: { 
     radius: 1.2, 
     orbitRadius: 15, 
     color: '#DEB887',
     rotationPeriod: -243, // negative because Venus rotates retrograde
-    orbitalPeriod: 0.62,
+    orbitalPeriod: 0.31, // Decreased for faster revolution
   },
   earth: { 
     radius: 1.4, 
     orbitRadius: 20, 
     color: '#4B8BBE',
     rotationPeriod: 1,
-    orbitalPeriod: 1,
+    orbitalPeriod: 0.5, // Decreased for faster revolution
     moons: MOONS.earth,
   },
   mars: { 
@@ -67,7 +67,7 @@ const CELESTIAL_BODIES = {
     orbitRadius: 25, 
     color: '#CD5C5C',
     rotationPeriod: 1.03,
-    orbitalPeriod: 1.88,
+    orbitalPeriod: 0.94, // Decreased for faster revolution
     moons: MOONS.mars,
   },
   jupiter: { 
@@ -75,7 +75,7 @@ const CELESTIAL_BODIES = {
     orbitRadius: 35, 
     color: '#DAA520',
     rotationPeriod: 0.41,
-    orbitalPeriod: 11.86,
+    orbitalPeriod: 5.0, // Decreased for faster revolution
     moons: MOONS.jupiter,
   },
   saturn: { 
@@ -83,7 +83,7 @@ const CELESTIAL_BODIES = {
     orbitRadius: 45, 
     color: '#F4C430',
     rotationPeriod: 0.45,
-    orbitalPeriod: 29.46,
+    orbitalPeriod: 15.0, // Decreased for faster revolution
     moons: MOONS.saturn,
   },
   uranus: { 
@@ -91,7 +91,7 @@ const CELESTIAL_BODIES = {
     orbitRadius: 55, 
     color: '#87CEEB',
     rotationPeriod: -0.72, // negative because Uranus rotates retrograde
-    orbitalPeriod: 84.01,
+    orbitalPeriod: 42.0, // Decreased for faster revolution
     moons: MOONS.uranus,
   },
   neptune: { 
@@ -99,13 +99,13 @@ const CELESTIAL_BODIES = {
     orbitRadius: 65, 
     color: '#4169E1',
     rotationPeriod: 0.67,
-    orbitalPeriod: 164.79,
+    orbitalPeriod: 80.0, // Decreased for faster revolution
     moons: MOONS.neptune,
   },
 }
 
 // Scale factors to make the visualization more interesting
-const ORBITAL_SPEED_FACTOR = 0.5 // Adjust this to speed up or slow down orbital motion
+const ORBITAL_SPEED_FACTOR = 4.0 // Increased from 0.5 to 1.0 for faster movement
 const ROTATION_SPEED_FACTOR = 0.5 // Adjust this to speed up or slow down rotation
 const MOON_SPEED_FACTOR = 1 // Adjust moon orbital speeds
 
@@ -256,20 +256,15 @@ const Planet = ({ radius, orbitRadius, color, rotationPeriod, orbitalPeriod, moo
   const lastRotation = useRef(0)
 
   useFrame((state, delta) => {
-    if (ref.current) {
-      if (isPlaying) {
-        time.current += delta
-        const rotationSpeed = (2 * Math.PI * ROTATION_SPEED_FACTOR) / rotationPeriod
-        lastRotation.current += delta * rotationSpeed
-        ref.current.rotation.y = lastRotation.current
-      }
-
+    if (isPlaying) {
+      time.current += delta
       const orbitalSpeed = (2 * Math.PI * ORBITAL_SPEED_FACTOR) / (orbitalPeriod * 365)
-      
       const x = Math.sin(time.current * orbitalSpeed) * orbitRadius
       const z = Math.cos(time.current * orbitalSpeed) * orbitRadius
-      
       setPosition(new THREE.Vector3(x, 0, z))
+
+      // Debugging logs
+      console.log(`Planet: ${name}, Time: ${time.current}, Position: (${x}, 0, ${z})`)
     }
   })
 
