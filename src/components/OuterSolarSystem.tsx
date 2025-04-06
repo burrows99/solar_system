@@ -44,10 +44,8 @@ const OuterSolarSystem = ({ isPlaying }: OuterSolarSystemProps) => {
     shininess: 5,
   }), []);
 
-  useFrame((state) => {
+  useFrame(() => {
     if (!isPlaying) return;
-
-    const time = state.clock.getElapsedTime();
 
     // Rotate Kuiper Belt slowly
     if (kuiperBeltRef.current) {

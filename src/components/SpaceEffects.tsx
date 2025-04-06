@@ -140,7 +140,6 @@ const SpaceEffects = ({ isPlaying }: SpaceEffectsProps) => {
 
       // Calculate tangent vector (direction of motion)
       const tx = -Math.sin(t);
-      const ty = Math.cos(t) * 0.5;
       const tz = Math.cos(t);
 
       // Set comet position

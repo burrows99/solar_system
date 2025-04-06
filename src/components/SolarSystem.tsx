@@ -123,11 +123,6 @@ interface MoonProps {
   isPlaying: boolean
 }
 
-interface LabelProps {
-  position: THREE.Vector3
-  name: string
-}
-
 const Label = ({ name }: { name: string }) => {
   return (
     <Html
@@ -167,7 +162,7 @@ const Moon = ({ radius, orbitRadius, orbitalPeriod, parentPosition, isPlaying, n
     return new THREE.Vector3(parentPosition.x + initialX, parentPosition.y, parentPosition.z + initialZ)
   })
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (isPlaying) {
       time.current += delta
     }
@@ -234,7 +229,6 @@ interface PlanetProps {
   radius: number
   orbitRadius: number
   color: string
-  rotationPeriod: number
   orbitalPeriod: number
   moons?: Array<{
     name: string
@@ -245,7 +239,7 @@ interface PlanetProps {
   isPlaying: boolean
 }
 
-const Planet = ({ radius, orbitRadius, color, rotationPeriod, orbitalPeriod, moons = [], isPlaying, name }: PlanetProps & { name: string }) => {
+const Planet = ({ radius, orbitRadius, color, orbitalPeriod, moons = [], isPlaying, name }: PlanetProps & { name: string }) => {
   const ref = useRef<THREE.Mesh>(null)
   const time = useRef(Math.random() * 100)
   const [position, setPosition] = useState(() => {
@@ -253,18 +247,14 @@ const Planet = ({ radius, orbitRadius, color, rotationPeriod, orbitalPeriod, moo
     const initialZ = Math.cos(time.current * (2 * Math.PI * ORBITAL_SPEED_FACTOR) / (orbitalPeriod * 365)) * orbitRadius
     return new THREE.Vector3(initialX, 0, initialZ)
   })
-  const lastRotation = useRef(0)
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (isPlaying) {
       time.current += delta
       const orbitalSpeed = (2 * Math.PI * ORBITAL_SPEED_FACTOR) / (orbitalPeriod * 365)
       const x = Math.sin(time.current * orbitalSpeed) * orbitRadius
       const z = Math.cos(time.current * orbitalSpeed) * orbitRadius
       setPosition(new THREE.Vector3(x, 0, z))
-
-      // Debugging logs
-      console.log(`Planet: ${name}, Time: ${time.current}, Position: (${x}, 0, ${z})`)
     }
   })
 
@@ -323,13 +313,11 @@ const Planet = ({ radius, orbitRadius, color, rotationPeriod, orbitalPeriod, moo
 
 const Sun = ({ isPlaying }: { isPlaying: boolean }) => {
   const ref = useRef<THREE.Mesh>(null)
-  const lastRotation = useRef(0)
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (ref.current && isPlaying) {
       const rotationSpeed = (2 * Math.PI * ROTATION_SPEED_FACTOR) / CELESTIAL_BODIES.sun.rotationPeriod
-      lastRotation.current += delta * rotationSpeed
-      ref.current.rotation.y = lastRotation.current
+      ref.current.rotation.y += delta * rotationSpeed
     }
   })
 
@@ -364,9 +352,9 @@ const AsteroidBelt = ({ isPlaying }: { isPlaying: boolean }) => {
 
   const [rotation, setRotation] = useState(0)
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (isPlaying) {
-      setRotation(prev => prev + delta * 0.05) // Slow rotation of the entire belt
+      setRotation(prev => prev + delta * 0.05)
     }
   })
 
@@ -392,28 +380,9 @@ const AsteroidBelt = ({ isPlaying }: { isPlaying: boolean }) => {
   )
 }
 
-const Meteor = ({ position, velocity }: { position: THREE.Vector3, velocity: THREE.Vector3 }) => {
+const Meteor = ({ position }: { position: THREE.Vector3 }) => {
   const ref = useRef<THREE.Mesh>(null)
-  const rotation = useRef(new THREE.Euler(
-    Math.random() * Math.PI * 2,
-    Math.random() * Math.PI * 2,
-    Math.random() * Math.PI * 2
-  ))
-  const rotationSpeed = useRef(new THREE.Vector3(
-    (Math.random() - 0.5) * 2,
-    (Math.random() - 0.5) * 2,
-    (Math.random() - 0.5) * 2
-  ))
   const scale = useRef(0.2 + Math.random() * 0.3)
-
-  useFrame((state, delta) => {
-    if (ref.current) {
-      // Update rotation
-      ref.current.rotation.x += rotationSpeed.current.x * delta
-      ref.current.rotation.y += rotationSpeed.current.y * delta
-      ref.current.rotation.z += rotationSpeed.current.z * delta
-    }
-  })
 
   return (
     <mesh ref={ref} position={position} scale={scale.current}>
@@ -436,18 +405,17 @@ const Meteors = ({ isPlaying }: { isPlaying: boolean }) => {
         (Math.random() - 0.5) * METEOR_FIELD_SIZE,
         (Math.random() - 0.5) * METEOR_FIELD_SIZE
       ),
-      velocity: new THREE.Vector3(
-        (Math.random() - 0.5) * 2,
-        (Math.random() - 0.5) * 2,
-        (Math.random() - 0.5) * 2
-      )
     }))
   )
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (isPlaying) {
       meteors.forEach(meteor => {
-        meteor.position.add(meteor.velocity.clone().multiplyScalar(delta * 5))
+        meteor.position.add(new THREE.Vector3(
+          (Math.random() - 0.5) * 2,
+          (Math.random() - 0.5) * 2,
+          (Math.random() - 0.5) * 2
+        ).multiplyScalar(delta * 5))
 
         // Wrap around if meteor goes too far
         if (Math.abs(meteor.position.x) > METEOR_FIELD_SIZE / 2) {
@@ -469,7 +437,6 @@ const Meteors = ({ isPlaying }: { isPlaying: boolean }) => {
         <Meteor
           key={index}
           position={meteor.position}
-          velocity={meteor.velocity}
         />
       ))}
     </group>

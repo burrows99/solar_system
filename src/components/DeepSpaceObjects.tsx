@@ -34,8 +34,6 @@ const DeepSpaceObjects = () => {
   const createNebulaGeometry = (size: number, density: number) => {
     const geometry = new THREE.BufferGeometry();
     const vertices = [];
-    const colors = [];
-
     for (let i = 0; i < density; i++) {
       const radius = size * (0.8 + Math.random() * 0.4);
       const theta = Math.random() * Math.PI * 2;
@@ -59,7 +57,7 @@ const DeepSpaceObjects = () => {
 
   const oortCloudRef = useRef<THREE.Points>(null);
   
-  useFrame((state) => {
+  useFrame(() => {
     if (oortCloudRef.current) {
       oortCloudRef.current.rotation.y += 0.0001;
     }

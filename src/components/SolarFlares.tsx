@@ -42,7 +42,7 @@ const SolarFlares = ({ isPlaying }: { isPlaying: boolean }) => {
     return geometry;
   }, []);
 
-  useFrame((state) => {
+  useFrame(() => {
     if (flareRef.current && isPlaying) {
       timeRef.current += 0.01;
 
