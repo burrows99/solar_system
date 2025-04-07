@@ -3,7 +3,12 @@ import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 
-const Label = ({ name, position }: { name: string; position: THREE.Vector3 }) => {
+const Label = ({ name, position, showLabels }: { 
+  name: string; 
+  position: THREE.Vector3;
+  showLabels: boolean;
+}) => {
+  if (!showLabels) return null;
   return (
     <Html
       position={[position.x, position.y + 1, position.z]}
@@ -35,9 +40,10 @@ const Label = ({ name, position }: { name: string; position: THREE.Vector3 }) =>
 
 interface SpaceEffectsProps {
   isPlaying: boolean;
+  showLabels: boolean;
 }
 
-const SpaceEffects = ({ isPlaying }: SpaceEffectsProps) => {
+const SpaceEffects = ({ isPlaying, showLabels }: SpaceEffectsProps) => {
   const flareRef = useRef<THREE.Points>(null);
   const cometRef = useRef<THREE.Mesh>(null);
   const cometTrailRef = useRef<THREE.Points>(null);
@@ -105,6 +111,25 @@ const SpaceEffects = ({ isPlaying }: SpaceEffectsProps) => {
     });
   }, []);
 
+  // Create comet orbit geometry
+  const cometOrbitGeometry = useMemo(() => {
+    const geometry = new THREE.BufferGeometry();
+    const vertices = [];
+    const orbitRadius = 30;
+    const segments = 64;
+
+    for (let i = 0; i <= segments; i++) {
+      const angle = (i / segments) * Math.PI * 2;
+      const x = Math.cos(angle) * orbitRadius;
+      const y = Math.sin(angle) * orbitRadius * 0.5; // Elliptical orbit
+      const z = Math.sin(angle) * orbitRadius;
+      vertices.push(x, y, z);
+    }
+
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    return geometry;
+  }, []);
+
   useFrame((state) => {
     const currentTime = state.clock.getElapsedTime();
     
@@ -156,6 +181,16 @@ const SpaceEffects = ({ isPlaying }: SpaceEffectsProps) => {
 
   return (
     <group>
+      {/* Comet Orbit Line */}
+      <line>
+        <primitive object={cometOrbitGeometry} attach="geometry" />
+        <lineBasicMaterial 
+          color={new THREE.Color(0x88ccff)} 
+          opacity={0.3} 
+          transparent={true}
+        />
+      </line>
+
       {/* Solar Flare */}
       <points ref={flareRef} position={[0, 0, 0]}>
         <primitive object={flareGeometry} attach="geometry" />
@@ -175,7 +210,7 @@ const SpaceEffects = ({ isPlaying }: SpaceEffectsProps) => {
           geometry={cometGeometry}
           material={cometMaterial}
         />
-        <Label name="Halley's Comet" position={cometPosition} />
+        <Label name="Halley's Comet" position={cometPosition} showLabels={showLabels} />
       </group>
 
       {/* Comet Trail */}

@@ -85,6 +85,11 @@ const CELESTIAL_BODIES = {
     rotationPeriod: 0.45,
     orbitalPeriod: 15.0, // Decreased for faster revolution
     moons: MOONS.saturn,
+    rings: {  // Add rings config
+      innerRadius: 3.5,
+      outerRadius: 7,
+      color: '#C0A080'
+    }
   },
   uranus: { 
     radius: 1.8, 
@@ -121,9 +126,12 @@ interface MoonProps {
   orbitalPeriod: number
   parentPosition: THREE.Vector3
   isPlaying: boolean
+  showLabels: boolean
+  name: string
 }
 
-const Label = ({ name }: { name: string }) => {
+const Label = ({ name, showLabels }: { name: string; showLabels: boolean }) => {
+  if (!showLabels) return null;
   return (
     <Html
       position={[0, 2, 0]}
@@ -153,7 +161,7 @@ const Label = ({ name }: { name: string }) => {
   )
 }
 
-const Moon = ({ radius, orbitRadius, orbitalPeriod, parentPosition, isPlaying, name }: MoonProps & { name: string }) => {
+const Moon = ({ radius, orbitRadius, orbitalPeriod, parentPosition, isPlaying, name, showLabels }: MoonProps) => {
   const ref = useRef<THREE.Mesh>(null)
   const time = useRef(Math.random() * 100)
   const [position, setPosition] = useState(() => {
@@ -184,7 +192,7 @@ const Moon = ({ radius, orbitRadius, orbitalPeriod, parentPosition, isPlaying, n
         <Sphere ref={ref} args={[radius, 16, 16]}>
           <meshStandardMaterial color="#CCCCCC" />
         </Sphere>
-        <Label name={name} />
+        {showLabels && <Label name={name} showLabels={showLabels} />}
       </group>
       <group position={[parentPosition.x, parentPosition.y, parentPosition.z]}>
         <line>
@@ -237,9 +245,16 @@ interface PlanetProps {
     orbitalPeriod: number
   }>
   isPlaying: boolean
+  showLabels: boolean
+  rings?: {  // Add rings configuration
+    innerRadius: number
+    outerRadius: number
+    color: string
+  }
+  name: string
 }
 
-const Planet = ({ radius, orbitRadius, color, orbitalPeriod, moons = [], isPlaying, name }: PlanetProps & { name: string }) => {
+const Planet = ({ radius, orbitRadius, color, orbitalPeriod, moons = [], isPlaying, name, showLabels, rings }: PlanetProps) => {
   const ref = useRef<THREE.Mesh>(null)
   const time = useRef(Math.random() * 100)
   const [position, setPosition] = useState(() => {
@@ -264,7 +279,19 @@ const Planet = ({ radius, orbitRadius, color, orbitalPeriod, moons = [], isPlayi
         <Sphere ref={ref} args={[radius, 32, 32]}>
           <meshStandardMaterial color={color} />
         </Sphere>
-        <Label name={name} />
+        {/* Add rings if configured */}
+        {rings && (
+          <mesh rotation={[Math.PI/6, 0, 0]}>
+            <ringGeometry args={[rings.innerRadius, rings.outerRadius, 64]} />
+            <meshStandardMaterial 
+              color={rings.color}
+              metalness={0.3}
+              roughness={0.7}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        )}
+        {showLabels && <Label name={name} showLabels={showLabels} />}
       </group>
       <line>
         <bufferGeometry>
@@ -305,13 +332,19 @@ const Planet = ({ radius, orbitRadius, color, orbitalPeriod, moons = [], isPlayi
           {...moon}
           parentPosition={position}
           isPlaying={isPlaying}
+          showLabels={showLabels}
         />
       ))}
     </>
   )
 }
 
-const Sun = ({ isPlaying }: { isPlaying: boolean }) => {
+interface SunProps {
+  isPlaying: boolean
+  showLabels: boolean
+}
+
+const Sun = ({ isPlaying, showLabels }: SunProps) => {
   const ref = useRef<THREE.Mesh>(null)
 
   useFrame((_state, delta) => {
@@ -330,7 +363,7 @@ const Sun = ({ isPlaying }: { isPlaying: boolean }) => {
           emissiveIntensity={2}
         />
       </Sphere>
-      <Label name="Sun" />
+      {showLabels && <Label name="Sun" showLabels={showLabels} />}
     </group>
   )
 }
@@ -445,21 +478,22 @@ const Meteors = ({ isPlaying }: { isPlaying: boolean }) => {
 
 interface SolarSystemProps {
   isPlaying: boolean
+  showLabels: boolean
 }
 
-const SolarSystem = ({ isPlaying }: SolarSystemProps) => {
+const SolarSystem = ({ isPlaying, showLabels }: SolarSystemProps) => {
   return (
     <group>
-      <Sun isPlaying={isPlaying} />
-      <Planet {...CELESTIAL_BODIES.mercury} name="Mercury" isPlaying={isPlaying} />
-      <Planet {...CELESTIAL_BODIES.venus} name="Venus" isPlaying={isPlaying} />
-      <Planet {...CELESTIAL_BODIES.earth} name="Earth" isPlaying={isPlaying} />
-      <Planet {...CELESTIAL_BODIES.mars} name="Mars" isPlaying={isPlaying} />
+      <Sun isPlaying={isPlaying} showLabels={showLabels} />
+      <Planet {...CELESTIAL_BODIES.mercury} name="Mercury" isPlaying={isPlaying} showLabels={showLabels} />
+      <Planet {...CELESTIAL_BODIES.venus} name="Venus" isPlaying={isPlaying} showLabels={showLabels} />
+      <Planet {...CELESTIAL_BODIES.earth} name="Earth" isPlaying={isPlaying} showLabels={showLabels} />
+      <Planet {...CELESTIAL_BODIES.mars} name="Mars" isPlaying={isPlaying} showLabels={showLabels} />
       <AsteroidBelt isPlaying={isPlaying} />
-      <Planet {...CELESTIAL_BODIES.jupiter} name="Jupiter" isPlaying={isPlaying} />
-      <Planet {...CELESTIAL_BODIES.saturn} name="Saturn" isPlaying={isPlaying} />
-      <Planet {...CELESTIAL_BODIES.uranus} name="Uranus" isPlaying={isPlaying} />
-      <Planet {...CELESTIAL_BODIES.neptune} name="Neptune" isPlaying={isPlaying} />
+      <Planet {...CELESTIAL_BODIES.jupiter} name="Jupiter" isPlaying={isPlaying} showLabels={showLabels} />
+      <Planet {...CELESTIAL_BODIES.saturn} name="Saturn" isPlaying={isPlaying} showLabels={showLabels} />
+      <Planet {...CELESTIAL_BODIES.uranus} name="Uranus" isPlaying={isPlaying} showLabels={showLabels} />
+      <Planet {...CELESTIAL_BODIES.neptune} name="Neptune" isPlaying={isPlaying} showLabels={showLabels} />
       <Meteors isPlaying={isPlaying} />
     </group>
   )
